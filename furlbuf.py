@@ -110,7 +110,7 @@ urlRe = re.compile(r'(\w+://(?:%s|%s)(?::\d+)?(?:/[^\])>\s]*)?)' % (domain, ipAd
 
 TINYURL = 'http://tinyurl.com/api-create.php?%s'
 furlbuf_buffer = None
-global r
+global rst
 rst = w.color('reset')
 
 # ================================[ checks ]===============================
