@@ -6,7 +6,7 @@
 #
 # License: GPL3 - <http://www.gnu.org/licenses/>.
 #
-# fUrlbuf - a neat url logger (Fork of Urlbuf.py by pX @ EFNet)
+# fUrlbuf - a neat url logger with tinyurl (Fork of Urlbuf)
 #
 # Collects received URLs from public and private messages into a single
 # buffer. This buffer is especially handy if you spend lot's of time afk
@@ -14,6 +14,9 @@
 # while you were doing something meaningful.
 #
 # History:
+# 03.29.2019:
+#   [v1.1]: added support for python3 - tested on latest stable weechat with
+#         : pythons v2.7 and 3.6.
 # 03.28.2019:
 #   [v 1.1]: re-wrote is_url_listed to use hdata instead of infolist, it also works now.
 #         +: skip_duplicates_num will check last XX lines in furlbuf_buffer for dupes
@@ -43,10 +46,10 @@
 #         +: moved buffer creation into a function
 #         +: if buffer doesn't exist, create it
 # 03.16.2019:
-#	[v 0.5]: per Big Dave's request, added self url logging and config option.  HI BIG DAVE!
+#   [v 0.5]: per Big Dave's request, added self url logging and config option.  HI BIG DAVE!
 #         +: added unread marker
 # 09.26.2019: px@havok.org - forked to fUrlbuf v0.1
-#	[v 0.1]: forked urlbuf.py and modified to display a cleaner/easier to read output.
+#   [v 0.1]: forked urlbuf.py and modified to display a cleaner/easier to read output.
 #
 ###################################################
 # 2014-09-17, Jani Kesänen <jani.kesanen@gmail.com>
@@ -58,18 +61,30 @@
 try:
     import weechat as w
 except ImportError:
-    print 'This script must be run under WeeChat.'
+    print('This script must be run under WeeChat.')
     quit()
 
+# urllib support for both py2.7 and 3.x -@pX 3.29.2019
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
+
+# urllib support for both py2.7 and 3.x -@pX 3.29.2019
+try:
+    import urllib2
+    ulib2 = True
+except ImportError:
+    import urllib.request
+    ulib2 = False
+
 import re
-from urllib import urlencode
-import urllib2
 
 SCRIPT_NAME    = 'fUrlbuf'
 SCRIPT_AUTHOR  = 'pX @ EFNet'
 SCRIPT_VERSION = '1.1'
 SCRIPT_LICENSE = 'GPL3 - http://www.gnu.org/licenses/'
-SCRIPT_DESC    = 'fUrlbuf - a neat url logger'
+SCRIPT_DESC    = 'fUrlbuf - a neat url logger with tinyurl'
 
 SETTINGS = {
     'output_left'                : ("[", "character(s) to left of nick"), ## @pX - 03.19.2019
@@ -113,6 +128,7 @@ furlbuf_buffer = None
 global rst
 rst = w.color('reset')
 
+
 # ================================[ checks ]===============================
 
 # re-wrote this block to use hdata instead of infolist -@pX 03.28.2019
@@ -152,13 +168,19 @@ def should_ignore_url(turl):
 # tinyurl -@pX 03.19.2019
 def get_shortened_url(turl):
     turl = TINYURL % urlencode({'url': turl})
-    opener = urllib2.build_opener()
+
+    if not ulib2:
+        opener = urllib.request.build_opener()
+    else:
+        opener = urllib2.build_opener()
+
     opener.addheaders = [('User-Agent', SCRIPT_NAME + ' v' + SCRIPT_VERSION)]
 
-    # avoid a possible tantrum by handling exceptions -@pX 3.28.2019
     try:
-        turl = opener.open(turl).read()
+        turl = opener.open(turl).read().decode()
     except (urllib2.HTTPError, urllib2.URLError):
+        turl = False
+    except (urllib.error.HTTPError, urllib.error.URLError):
         turl = False
 
     return turl
@@ -253,7 +275,7 @@ def furlbuf_buffer_create():
 
     if not furlbuf_buffer:
         furlbuf_buffer = w.buffer_new('fUrlbuf', 'furlbuf_input_cb', '', '', '')
-        w.buffer_set(furlbuf_buffer, 'title', '-[' + SCRIPT_NAME + ' v' + SCRIPT_VERSION + ']- a neat url logger')
+        w.buffer_set(furlbuf_buffer, 'title', '-[' + SCRIPT_NAME + ' v' + SCRIPT_VERSION + ']- a neat url logger with tinyurl')
         w.buffer_set(furlbuf_buffer, 'notify', '0')
         w.buffer_set(furlbuf_buffer, 'nicklist', '0')
 
