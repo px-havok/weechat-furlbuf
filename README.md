@@ -1,6 +1,6 @@
-# weechat scripts
-### _FUrlbuf_ - a neat url logger by pX @ EFNet
-**FUrlbuf** stands for Fork of _Urlbuf_, original code by @jkesanen.
+# _fUrlbuf_ - a neat url logger with tinyurl
+**FUrlbuf** stands for Fork of _Urlbuf_.  The original _Urlbuf_ code is copyright stands @jkesanen.
+
 When run under weechat, this script will:
 - Log all incoming and outgoing URL's to a private buffer
 - Associate a Tinyurl to all incoming and outgoing URL's if applicable
