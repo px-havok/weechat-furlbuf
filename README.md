@@ -9,14 +9,14 @@ When run under weechat, this script will:
 If you use a different URL shortening service, sorry!  Let me know and I can add others, or you can add them. ;)**
 
 ### Here's how url's are logged to the fUrlbuf buffer:
-![alt text](http://havok.org/~px/gh/furlbuf/furlbuf.png)
+![alt text](http://havok.org/~px/gh/furlbuf/furlbuf1.png)
 - Separators \(**\[** **\/** **\]**\) can be customized and colored.
 - url's messaged to you are noted with '*priv*' buffer tag (colorable)
 - Your own nick is a different (customizable) color.
   - Logging of own url's can be turned off.
 
 ### fUrlbuf's tinyurl feature in-channel:
-![alt text](http://havok.org/~px/gh/furlbuf/channel.png)
+![alt text](http://havok.org/~px/gh/furlbuf/channel1.png)
 - **fUrlbuf** will process tinyurl's only if a tinyurl isn't already present.
 - tinyurl is transparent on your outgoing url's, you won't see it, but everyone else does.
 
