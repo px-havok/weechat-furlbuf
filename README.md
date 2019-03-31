@@ -8,6 +8,18 @@ When run under weechat, this script will:
 **If you are using _urlbuf.py_ and/or _shortenurl.py_, please make sure to unload them first.  This replaces both.
 If you use a different URL shortening service, sorry!  Let me know and I can add others, or you can add them. ;)**
 
+### Here's how url's are logged to the fUrlbuf buffer:
+![alt text](http://havok.org/~px/gh/furlbuf/furlbuf.png)
+- Separators \(**\[** **\/** **\]**\) can be customized and colored.
+- url's messaged to you are noted with '*priv*' buffer tag (colorable)
+- Your own nick is a different (customizable) color.
+  - Logging of own url's can be turned off.
+
+### fUrlbuf's tinyurl feature in-channel:
+![alt text](http://havok.org/~px/gh/furlbuf/channel.png)
+- **fUrlbuf** will process tinyurl's only if a tinyurl isn't already present.
+- tinyurl is transparent on your outgoing url's, you won't see it, but everyone else does.
+
 At this point I've rewritten most of the original Urlbuf and added some Tinyurl elements from shortenurl.py.
 Urlbuf.py and Shortenurl.py were both replicating a lot of the same work on each hook, combining the 2 makes
 sense and performance is better.
