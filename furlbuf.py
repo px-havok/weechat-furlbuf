@@ -7,6 +7,7 @@
 # License: GPL3 - <http://www.gnu.org/licenses/>.
 #
 # fUrlbuf - a neat url logger with tinyurl (Fork of Urlbuf)
+# https://github.com/px-havok/weechat-furlbuf
 #
 # Collects received URLs from public and private messages into a single
 # buffer. This buffer is especially handy if you spend lot's of time afk
@@ -17,6 +18,7 @@
 # 03.29.2019:
 #   [v1.1]: added support for python3 - tested on latest stable weechat with
 #         : pythons v2.7 and 3.6.
+#         : py3-ok
 # 03.28.2019:
 #   [v 1.1]: re-wrote is_url_listed to use hdata instead of infolist, it also works now.
 #         +: skip_duplicates_num will check last XX lines in furlbuf_buffer for dupes
@@ -413,7 +415,11 @@ def furlbuf_print_cb(data, buffer, date, tags, displayed, highlight, prefix, mes
             furlbuf_buffer_create()
 
         # output to furlbuf_buffer
-        w.prnt(furlbuf_buffer, leftchar + output + rightchar + url + ' ' + tinyout)
+        try:
+            w.prnt(furlbuf_buffer, leftchar + output + rightchar + url + ' ' + tinyout)
+        # rewrite this to handle more gracefully
+        except UnicodeDecodeError:
+            w.prnt(furlbuf_buffer, leftchar + output + rightchar + '<malformed url>'  + ' ' + tinyout)
 
     return w.WEECHAT_RC_OK
 
