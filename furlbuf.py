@@ -15,6 +15,10 @@
 # while you were doing something meaningful.
 #
 # History:
+# 04.08.2019:
+#   [v1.2]: fixed a UnicodeDecodeError exception when handling unicode in
+#         : an url with python2
+#         : changed the urllib import for py2 vs py3, cleaned up other parts
 # 03.29.2019:
 #   [v1.1]: added support for python3 - tested on latest stable weechat with
 #         : pythons v2.7 and 3.6.
@@ -62,29 +66,24 @@
 
 try:
     import weechat as w
+    import re
+    import sys
 except ImportError:
     print('This script must be run under WeeChat.')
     quit()
 
-# urllib support for both py2.7 and 3.x -@pX 3.29.2019
-try:
-    from urllib import urlencode
-except ImportError:
+# get the correct urllib depending on python version
+if sys.version_info >= (3,):
+    import urllib.request as ulib
     from urllib.parse import urlencode
+else:
+    import urllib2 as ulib
+    from urllib import urlencode
 
-# urllib support for both py2.7 and 3.x -@pX 3.29.2019
-try:
-    import urllib2
-    ulib2 = True
-except ImportError:
-    import urllib.request
-    ulib2 = False
-
-import re
 
 SCRIPT_NAME    = 'fUrlbuf'
 SCRIPT_AUTHOR  = 'pX @ EFNet'
-SCRIPT_VERSION = '1.1'
+SCRIPT_VERSION = '1.2'
 SCRIPT_LICENSE = 'GPL3 - http://www.gnu.org/licenses/'
 SCRIPT_DESC    = 'fUrlbuf - a neat url logger with tinyurl'
 
@@ -133,6 +132,11 @@ rst = w.color('reset')
 
 # ================================[ checks ]===============================
 
+def py3():
+    if sys.version_info >= (3,):
+        return True
+
+
 # re-wrote this block to use hdata instead of infolist -@pX 03.28.2019
 def is_url_listed(buffer, url, num):
     found = False
@@ -171,18 +175,13 @@ def should_ignore_url(turl):
 def get_shortened_url(turl):
     turl = TINYURL % urlencode({'url': turl})
 
-    if not ulib2:
-        opener = urllib.request.build_opener()
-    else:
-        opener = urllib2.build_opener()
+    opener = ulib.build_opener()
 
     opener.addheaders = [('User-Agent', SCRIPT_NAME + ' v' + SCRIPT_VERSION)]
 
     try:
         turl = opener.open(turl).read().decode()
-    except (urllib2.HTTPError, urllib2.URLError):
-        turl = False
-    except (urllib.error.HTTPError, urllib.error.URLError):
+    except (ulib.HTTPError, ulib.URLError):
         turl = False
 
     return turl
@@ -316,7 +315,9 @@ def outgoing_hook(data, modifier, modifier_data, msg):
 
         tiny_url = get_shortened_url(url)
         if tiny_url:
-            msg = msg.replace(url, "[%(tiny_url)s] %(url)s " % dict(url=url, tiny_url=tiny_url))
+            if not py3():
+                tiny_url = tiny_url.encode('ascii')
+            msg = msg.replace(url, "(%(tiny_url)s): %(url)s " % dict(url=url, tiny_url=tiny_url))
 
     return msg
 
@@ -405,21 +406,18 @@ def furlbuf_print_cb(data, buffer, date, tags, displayed, highlight, prefix, mes
             output = "%s%s" % (w.color(fu_cg('show_buffer_short_color')), buffername)
 
         else:
-            leftchar = ''
-            rightchar = ''
-            output = ''
+            leftchar, rightchar, output = '', '', ''
 
         # If you close the buffer, you shouldn't have to reload the script to open it again, imo.. -@pX 03.17.2019
         # moved this check to occur just before the print instead of function start -@pX 03.17.2019
         if not furlbuf_buffer:
             furlbuf_buffer_create()
 
+        if not py3():
+            tinyout = tinyout.encode('ascii')
+
         # output to furlbuf_buffer
-        try:
-            w.prnt(furlbuf_buffer, leftchar + output + rightchar + url + ' ' + tinyout)
-        # rewrite this to handle more gracefully
-        except UnicodeDecodeError:
-            w.prnt(furlbuf_buffer, leftchar + output + rightchar + '<malformed url>'  + ' ' + tinyout)
+        w.prnt(furlbuf_buffer, leftchar + output + rightchar + url + ' ' + tinyout)
 
     return w.WEECHAT_RC_OK
 
